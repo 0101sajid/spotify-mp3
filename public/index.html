@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpotDL Web</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">SpotDL Web</h1>
+        <div class="card mx-auto" style="max-width: 800px;">
+            <div class="card-body">
+                <form id="downloadForm">
+                    <div class="form-group">
+                        <label for="url">Paste your Spotify link here:</label>
+                        <div class="form-group mt-3">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="url" name="url" placeholder="E.g., https://open.spotify.com/track/..." required>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success btn-block">Download</button>
+                    <button type="button" id="downloadAllBtn" class="btn btn-success btn-block" style="display: none;">Download All</button>
+                    <div id="searchContainer" style="display: none;">
+                        <input type="text" id="searchSongs" placeholder="Search songs...">
+                    </div>
+                </form>
+
+                <div id="songDetails" style="display: none;">
+                    <h2 id="playlistAlbumName" class="mt-3"></h2>
+                    <div id="searchInput" style="display: none;">
+                        <input type="text" class="form-control" id="search" placeholder="Search songs">
+                    </div>
+                    <div id="songsList" class="mt-3">
+                        <!-- Songs will be dynamically added here -->
+                    </div>
+                    <div id="paginationButtons" class="mt-3 text-center">
+                        <!-- Pagination buttons will be dynamically added here -->
+                    </div>
+                </div>
+
+                <div id="statusText" class="mt-3"></div>
+
+                <div id="loadingSpinner" class="loader mx-auto"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and custom script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <script src="scripts.js"></script>
+    <script>
+        function pasteText() {
+            navigator.clipboard.readText().then(text => {
+                document.getElementById('url').value = text;
+                fetchSongDetails(); // Automatically fetch details after pasting
+            });
+        }
+
+        // Automatically fetch song details on form submit
+        document.getElementById('downloadForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            fetchSongDetails();
+        });
+
+        function fetchSongDetails() {
+            const url = document.getElementById('url').value.trim();
+
+            // Show loading spinner and clear previous messages
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const statusText = document.getElementById('statusText');
+            loadingSpinner.style.display = 'block';
+            statusText.textContent = '';
+
+            // Fetch song details from server
+            fetch(`/song-details?url=${encodeURIComponent(url)}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Hide loading spinner and show song details
+                loadingSpinner.style.display = 'none';
+                document.getElementById('songDetails').style.display = 'block';
+                document.getElementById('downloadAllBtn').style.display = data.songs.length > 1 ? 'block' : 'none';
+                document.getElementById('url').value = ''; // Clear the URL field
+                displaySongs(data.songs);
+
+                // Show or hide search input based on content type
+                if (data.contentType === 'playlist' || data.contentType === 'album') {
+                    document.getElementById('searchInput').style.display = 'block';
+                } else {
+                    document.getElementById('searchInput').style.display = 'none';
+                }
+
+                // Show or hide "Download All" button based on content type
+                if (data.contentType === 'playlist' || data.contentType === 'album') {
+                    document.getElementById('downloadAllBtn').style.display = 'block';
+                } else {
+                    document.getElementById('downloadAllBtn').style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching song details:', error);
+                statusText.textContent = 'Error fetching song details.';
+                loadingSpinner.style.display = 'none';
+            });
+        }
+
+        function displaySongs(songs) {
+            // Implement display logic here based on fetched songs
+            // This function is implemented in scripts.js
+            // Modify as per your existing logic for displaying songs
+        }
+    </script>
+</body>
+</html>
