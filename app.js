@@ -21,7 +21,7 @@ app.use(express.static('public'));
 // Apply rate limiting to the download endpoint - 100 downloads per hour limit
 const limiter = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hour window
-    max: 10, // limit each IP to 100 requests per windowMs
+    max: 100, // limit each IP to 100 requests per windowMs
     message: 'Too many requests from this IP, please try again after an hour'
 });
 
